@@ -9,6 +9,8 @@ packages = [{include = "walk_forward_optimization"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
 
 [build-system]
 requires = ["poetry-core"]
