@@ -1,0 +1,53 @@
+# Checks that we can build and validate the Unittest
+name: Pull-Request-Checks
+
+on: [push]
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ '3.9', '3.10', '3.11' ]
+    name: Python ${{ matrix.python-version }} sample
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v4.7.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+
+      - name: Install Poetry Action
+        uses: snok/install-poetry@v1.3.3
+      
+      # Cache your dependencies (i.e. all the stuff in your `pyproject.toml`). Note the cache
+      # key: if you're using multiple Python versions, or multiple OSes, you'd need to include
+      # them in the cache key. I'm not, so it can be simple and just depend on the poetry.lock.
+      - name: cache deps
+        id: cache-deps
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: pydeps-${{ hashFiles('**/poetry.lock') }}
+
+      # Install dependencies. `--no-root` means "install all dependencies but not the project
+      # itself", which is what you want to avoid caching _your_ code. The `if` statement
+      # ensures this only runs on a cache miss.
+      - run: poetry install --no-interaction --no-root
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+
+      # Now install _your_ project. This isn't necessary for many types of projects -- particularly
+      # things like Django apps don't need this. But it's a good idea since it fully-exercises the
+      # pyproject.toml and makes that if you add things like console-scripts at some point that
+      # they'll be installed and working.
+      - run: poetry install --no-interaction
+
+      # And finally run tests. I'm using pytest and all my pytest config is in my `pyproject.toml`
+      # so this line is super-simple. But it could be as complex as you need.
+      - run: poetry run pytest
