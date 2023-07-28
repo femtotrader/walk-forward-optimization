@@ -8,6 +8,8 @@ packages = [{include = "walk_forward_optimization"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+numpy = "^1.25.1"
+pandas = "^1.5.3"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"
